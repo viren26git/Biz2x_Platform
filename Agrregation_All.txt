@@ -1,0 +1,115 @@
+db.products.insertMany([
+  {
+    name: "Laptop Pro",
+    category: "Electronics",
+    price: 1200,
+    stock: 50,
+    ratings: [{ user: "U1", score: 5 }, { user: "U2", score: 4 }],
+    supplier: { name: "TechSupplier", country: "USA" },
+    tags: ["premium", "lightweight"],
+    createdAt: ISODate("2024-08-15T10:00:00Z")
+  },
+  {
+    name: "Smartphone X",
+    category: "Electronics",
+    price: 800,
+    stock: 100,
+    ratings: [{ user: "U3", score: 4 }, { user: "U4", score: 3 }],
+    supplier: { name: "MobileWorld", country: "China" },
+    tags: ["android", "fast"],
+    createdAt: ISODate("2024-09-10T12:30:00Z")
+  },
+  {
+    name: "Wireless Headphones",
+    category: "Electronics",
+    price: 150,
+    stock: 200,
+    ratings: [{ user: "U5", score: 4 }, { user: "U6", score: 5 }],
+    supplier: { name: "SoundPro", country: "Germany" },
+    tags: ["audio", "bluetooth"],
+    createdAt: ISODate("2024-10-01T09:20:00Z")
+  },
+  {
+    name: "Coffee Maker",
+    category: "Home Appliances",
+    price: 120,
+    stock: 40,
+    ratings: [{ user: "U7", score: 3 }, { user: "U8", score: 4 }],
+    supplier: { name: "HomeTech", country: "Italy" },
+    tags: ["kitchen", "coffee"],
+    createdAt: ISODate("2024-07-25T14:10:00Z")
+  },
+  {
+    name: "Refrigerator XL",
+    category: "Home Appliances",
+    price: 900,
+    stock: 15,
+    ratings: [{ user: "U9", score: 5 }, { user: "U10", score: 5 }],
+    supplier: { name: "CoolingCorp", country: "USA" },
+    tags: ["kitchen", "cooling"],
+    createdAt: ISODate("2024-06-05T08:45:00Z")
+  },
+  {
+    name: "Office Chair",
+    category: "Furniture",
+    price: 300,
+    stock: 25,
+    ratings: [{ user: "U11", score: 4 }, { user: "U12", score: 3 }],
+    supplier: { name: "FurniCo", country: "India" },
+    tags: ["ergonomic", "comfort"],
+    createdAt: ISODate("2024-05-12T16:00:00Z")
+  },
+  {
+    name: "Dining Table Set",
+    category: "Furniture",
+    price: 700,
+    stock: 10,
+    ratings: [{ user: "U13", score: 5 }, { user: "U14", score: 4 }],
+    supplier: { name: "WoodArt", country: "India" },
+    tags: ["wooden", "dining"],
+    createdAt: ISODate("2024-08-02T11:30:00Z")
+  },
+  {
+    name: "T-Shirt",
+    category: "Clothing",
+    price: 25,
+    stock: 500,
+    ratings: [{ user: "U15", score: 4 }, { user: "U16", score: 3 }],
+    supplier: { name: "FashionHub", country: "Bangladesh" },
+    tags: ["casual", "cotton"],
+    createdAt: ISODate("2024-09-18T18:10:00Z")
+  },
+  {
+    name: "Running Shoes",
+    category: "Clothing",
+    price: 120,
+    stock: 150,
+    ratings: [{ user: "U17", score: 5 }, { user: "U18", score: 4 }],
+    supplier: { name: "Sporty", country: "Vietnam" },
+    tags: ["sports", "lightweight"],
+    createdAt: ISODate("2024-08-28T07:50:00Z")
+  },
+  {
+    name: "Tablet S",
+    category: "Electronics",
+    price: 600,
+    stock: 80,
+    ratings: [{ user: "U19", score: 4 }, { user: "U20", score: 5 }],
+    supplier: { name: "GizmoTech", country: "South Korea" },
+    tags: ["tablet", "portable"],
+    createdAt: ISODate("2024-09-05T13:25:00Z")
+  }
+])
+
+
+Q1. Find all products with price greater than or equal to 1000
+Q2. Count total number of products in each category.
+Q3. Get the maximum and minimum price of products in each category.
+Q4. Find top 3 most expensive products (name & price only).
+Q5. Get the average price of products supplied by each supplier country.
+Q6. Count how many products have stock less than or equal to 10.
+Q7. Find total stock value (price × stock) of each category. ( complex and tricky)
+Q8. Get the most recent 5 products added (sorted by createdAt).
+Q9. Find all categories having more than 5 products.
+Q10. Get the top 2 categories with the highest total revenue (price × stock).
+Q11. Find the top-rated product in each category (based on average rating).
