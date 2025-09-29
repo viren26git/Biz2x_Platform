@@ -1,0 +1,379 @@
+---------insert -----------
+db.cities.insertMany([
+    {"name": "Seoul", "country": "South Korea", "continent": "Asia", "population": 25.674 },
+    {"name": "Mumbai", "country": "India", "continent": "Asia", "population": 19.980 },
+    {"name": "Lagos", "country": "Nigeria", "continent": "Africa", "population": 13.463 },
+    {"name": "Beijing", "country": "China", "continent": "Asia", "population": 19.618 },
+    {"name": "Shanghai", "country": "China", "continent": "Asia", "population": 25.582 },
+    {"name": "Osaka", "country": "Japan", "continent": "Asia", "population": 19.281 },
+    {"name": "Cairo", "country": "Egypt", "continent": "Africa", "population": 20.076 },
+    {"name": "Tokyo", "country": "Japan", "continent": "Asia", "population": 37.400 },
+    {"name": "Karachi", "country": "Pakistan", "continent": "Asia", "population": 15.400 },
+    {"name": "Dhaka", "country": "Bangladesh", "continent": "Asia", "population": 19.578 },
+    {"name": "Rio de Janeiro", "country": "Brazil", "continent": "South America", "population": 13.293 },
+    {"name": "São Paulo", "country": "Brazil", "continent": "South America", "population": 21.650 },
+    {"name": "Mexico City", "country": "Mexico", "continent": "North America", "population": 21.581 },
+    {"name": "Delhi", "country": "India", "continent": "Asia", "population": 28.514 },
+    {"name": "Buenos Aires", "country": "Argentina", "continent": "South America", "population": 14.967 },
+    {"name": "Kolkata", "country": "India", "continent": "Asia", "population": 14.681 },
+    {"name": "New York", "country": "United States", "continent": "North America", "population": 18.819 },
+    {"name": "Manila", "country": "Philippines", "continent": "Asia", "population": 13.482 },
+    {"name": "Chongqing", "country": "China", "continent": "Asia", "population": 14.838 },
+    {"name": "Istanbul", "country": "Turkey", "continent": "Europe", "population": 14.751 }
+])
+
+
+----------- aggregate ------
+Syntax:
+db.cities.aggregate([
+    { $match: { } }
+])
+
+
+db.cities.aggregate([
+    { $match: { "continent": "North America" } }
+])
+
+This time the { "continent": "North America" } query document appears as the parameter to the $match stage. Consequently, MongoDB returns two cities from North America.
+
+
+To return more results, alter this command so it returns cities from North America and Asia:
+db.cities.aggregate([
+    { $match: { "continent": { $in: ["North America", "Asia"] } } }
+])
+
+Notice that the query document syntax is once again identical to how you’d retrive the same data using the find() method. This time MongoDB returns 14 different cities.
+
+
+------------------- sort ---------------------
+(1) To retrieve every city in the collection and sort them in descending order by population, you could run an operation like this:
+
+db.cities.find().sort({ "population": -1 })
+MongoDB will return each city starting with Tokyo, followed by Delhi, Seoul, and so on.
+
+
+(2) Suppose that you want to retrieve cities just from North America sorted by population in ascending order. To do so, you could apply two processing stages one after the other: the first to narrow down the result set with a filtering $match stage and then a second to apply the required ordering using a $sort stage:
+
+db.cities.aggregate([
+    { $match: { "continent": { $in: ["North America", "Asia"] }} },
+    { $sort: { "population": 1 } }
+])
+
+This time, MongoDB will return documents representing New York and Mexico City, the only two cities from North America, starting with New York as it has a lower population.
+
+
+------------------------ group ------------------------
+The following example method will group documents based on the values in the continent and country documents:
+db.cities.aggregate([
+    {
+        $group: {
+            "_id": {
+                "continent": "$continent",
+                "country": "$country"
+            }
+        }
+    }
+])
+
+and 
+
+db.cities.aggregate([
+    {
+        $group: {
+            "_id": {
+                "continent": "$continent",
+                "country": "$country"
+            },
+            "highest_population": { $max: "$population" },
+            "lowest_population" : { $min: "$population"},
+            "first_city": { $first: "$name" },
+            "cities_in_top_20": { $sum: 1 }
+        }
+    }
+])
+
+
+db.cities.aggregate([
+    {
+        $group: {
+            "_id": {
+                "continent": "$continent"
+            },
+            "highest_population": { $max: "$population" },
+            "lowest_population" : { $min: "$population"},
+            "first_city": { $first: "$name" },
+            "cities_in_top_20": { $sum: 1 }
+        }
+    }
+])
+
+
+note**:
+1) Case 1: _id: <field> (If you group by a field, MongoDB will create one group per unique value of that field.)
+Example:
+
+db.cities.aggregate([
+  { $group: { _id: "$continent", avgPopulation: { $avg: "$population" } } }
+])
+
+so here _id = "$continent" means “group all cities by continent.”. So you  get one document for Asia, one for Europe, one for Africa, etc.
+
+
+2) Case 2:
+If you set _id: null, MongoDB does not group by anything — it treats all documents as one single group.
+
+Example:
+db.cities.aggregate([
+  { $group: { _id: null, maxPopulation: { $max: "$population" } } }
+])
+
+here _id = null means “consider all cities together as one group” and return just one result with the maximum population across the whole dataset.  If you set _id: null, MongoDB does not group by anything — it treats all documents as one single group.
+
+=================================================================================================================
+1. Find the maximum population city in the world
+db.cities.aggregate([
+  { $group: { _id: null, maxPopulation: { $max: "$population" } } }
+])
+
+
+2. Find all cities with population greater than or equal to 20 million ($gte)
+db.cities.aggregate([
+  { $match: { population: { $gte: 20 } } },
+  { $project: { name: 1, country: 1, population: 1, _id: 0 } }
+])
+
+
+3. Find all cities in India where population is less than or equal to 20 million ($lte)
+db.cities.aggregate([
+  { $match: { country: "India", population: { $lte: 20 } } },
+  { $project: { name: 1, population: 1, _id: 0 } }
+])
+
+
+4. Find the top 3 most populated cities in Asia
+db.cities.aggregate([
+  { $match: { continent: "Asia" } },
+  { $sort: { population: -1 } },
+  { $limit: 3 },
+  { $project: { _id: 0, name: 1, country: 1, population: 1 } }
+])
+
+
+5. Find the total population per continent and sort by descending order
+db.cities.aggregate([
+  { $group: { _id: "$continent", totalPopulation: { $sum: "$population" } } },
+  { $sort: { totalPopulation: -1 } }
+])
+
+6. Classify cities into population buckets (small <15M, medium 15–25M, large >25M)
+db.cities.aggregate([
+  {
+    $bucket: {
+      groupBy: "$population",
+      boundaries: [0, 15, 25, 100],
+      default: "Unknown",
+      output: {
+        totalCities: { $sum: 1 },
+        avgPopulation: { $avg: "$population" },
+        cities: { $push: "$name" }
+      }
+    }
+  }
+])
+
+
+7. Find the largest city per country (max population in each country)
+db.cities.aggregate([
+  { $sort: { population: -1 } },
+  {
+    $group: {
+      _id: "$country",
+      largestCity: { $first: "$name" },
+      population: { $first: "$population" }
+    }
+  },
+  { $sort: { population: -1 } }
+])
+
+
+8. You want to show City name , Population in millions (original) and Population in thousands (calculated using $multiply)
+db.cities.aggregate([
+  {
+    $project: {
+      _id: 0, // hide the default _id field
+      city: "$name",
+      populationInMillions: "$population",
+      populationInThousands: { $multiply: ["$population", 1000] } // multiply population by 1000
+    }
+  }
+])
+
+===============================================================================================================
+
+Universities collection:
+
+db.universities.insert([
+{
+  country : 'Spain',
+  city : 'Salamanca',
+  name : 'USAL',
+  location : {
+    type : 'Point',
+    coordinates : [ -5.6722512,17, 40.9607792 ]
+  },
+  students : [
+    { year : 2014, number : 24774 },
+    { year : 2015, number : 23166 },
+    { year : 2016, number : 21913 },
+    { year : 2017, number : 21715 }
+  ]
+},
+{
+  country : 'Spain',
+  city : 'Salamanca',
+  name : 'UPSA',
+  location : {
+    type : 'Point',
+    coordinates : [ -5.6691191,17, 40.9631732 ]
+  },
+  students : [
+    { year : 2014, number : 4788 },
+    { year : 2015, number : 4821 },
+    { year : 2016, number : 6550 },
+    { year : 2017, number : 6125 }
+  ]
+},
+{
+  country : 'Greece',
+  city : 'Salmi',
+  name : 'UPSA',
+  location : {
+    type : 'Point',
+    coordinates : [ -5.6691191,17, 40.9631732 ]
+  },
+  students : [
+    { year : 2014, number : 4788 },
+    { year : 2015, number : 4821 },
+    { year : 2016, number : 6550 },
+    { year : 2017, number : 6125 }
+  ]
+}
+])
+
+
+
+-------------- courses -----------------
+
+db.courses.insert([
+{
+  university : 'USAL',
+  name : 'Computer Science',
+  level : 'Excellent'
+},
+{
+  university : 'USAL',
+  name : 'Electronics',
+  level : 'Intermediate'
+},
+{
+  university : 'USAL',
+  name : 'Communication',
+  level : 'Excellent'
+}
+])
+
+
+-------------- MongoDB $match ---------------
+The $match stage allows us to choose just those documents from a collection that we want to work with. It does this by filtering out those that do not follow our requirements.
+we only want to work with those documents which specify that 'Spain' is the value of the field country, and 'Salamanca' is the value of the field city.
+
+db.universities.aggregate([
+  { $match : { country : 'Spain', city : 'Salamanca', name: 'USAL' } }
+]).pretty()
+
+
+-------------- MongoDB $group ---------------
+With the $group stage, we can perform all the aggregation or summary queries that we need, such as finding counts, totals, averages or maximums.
+we want to know the number of documents per university in our ‘universities’ collection:
+
+db.universities.aggregate([
+  { $group : { _id : '$name', totaldocs : { $sum : 1 } } }
+]).pretty()
+
+$count	Calculates the quantity of documents in the given group.
+$max	Displays the maximum value of a document’s field in the collection.
+$min	Displays the minimum value of a document’s field in the collection.
+$avg	Displays the average value of a document’s field in the collection.
+$sum	Sums up the specified values of all documents in the collection.
+$push	Adds extra values into the array of the resulting document.
+
+--------------- $project ----------------
+is used to reshape documents.
+It lets you select which fields to include/exclude, rename fields, or create new computed fields.
+It’s like SELECT column1, column2 etc in SQL.
+
+Example:
+Include specific fields
+db.cities.aggregate([
+  { $project: { name: 1, country: 1, _id: 0 } }
+])
+
+Keeps only name and country, hides _id.
+
+---------------- $unwind ----------------------
+
+$unwind : is used to deconstruct an array field in a document.
+It creates one document for each element in the array. just like very similar to “flattening” arrays so that you can process each element individually.
+
+Suppose your cities collection has this document:
+
+{
+  name: "Tokyo",
+  country: "Japan",
+  population: 37.4,
+  languages: ["Japanese", "English"]
+}
+
+Using $unwind-->
+db.cities.aggregate([
+  { $unwind: "$languages" },
+  { $project: { _id: 0, city: "$name", language: "$languages" } }
+])
+
+--------------- MongoDB $sort -----------------
+You need the $sort stage to sort your results by the value of a specific field.
+
+let’s sort the documents obtained as a result of the $unwind stage by the number of students in descending order.
+In order to get a lesser output, I am going to project only the year and the number of students.
+
+You can pass the array field path to 
+$unwind : When using this syntax,  $unwind does not output a document if the field value is null, missing, or an empty array.
+
+db.universities.aggregate([
+  { $match : { name : 'USAL' } },
+  { $unwind : '$students' },
+  { $project : { _id : 0, 'students.year' : 1, 'students.number' : 1 } },
+  { $sort : { 'students.number' : -1 } }
+]).pretty()
+
+
+
+--------------- MongoDB $addFields ----------------
+It is possible that you need to make some changes to your output in the way of new fields. In the next example, we want to add the year of the foundation of the university.
+
+db.universities.aggregate([
+  { $match : { name : 'USAL' } },
+  { $addFields : { foundation_year : 1218 } }
+]).pretty()
+
+
+
+---------------- MongoDB $count --------------------
+The $count stage provides an easy way to check the number of documents obtained in the output of the previous stages of the pipeline.
+
+Let’s see it in action:
+
+db.universities.aggregate([
+  { $unwind : '$students' },
+  { $count : 'total_documents' }
+]).pretty()
