@@ -1,0 +1,30 @@
+Go to IAM  create role with below steps 
+1. Create policy with below JSON
+{
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+            "Effect": "Allow",
+            "Action": [
+                "ec2:Describe*",
+                "ec2:Get*",
+                "ec2:CreateKeyPair",
+                "ec2:CreateSecurityGroup",
+                "ec2:AuthorizeSecurityGroupIngress",
+                "ec2:AuthorizeSecurityGroupEgress",
+                "ec2:CreateTags",
+                "ec2:DescribeTags",
+                "ec2:RunInstances",
+                "ec2:StopInstances"
+            ],
+            "Resource": "*",
+            "Condition": {
+                "StringEquals": {
+                    "ec2:Region": "us-east-1"
+                }
+            }
+        }
+    ]
+}
+
+2. create role “myrole” and attach the policy with that (choose the service as Lambda)
