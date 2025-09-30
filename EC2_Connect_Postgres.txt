@@ -1,0 +1,64 @@
+
+==========================
+Script for EC2 ---> Advanced Details
+
+#!/bin/bash
+set -e
+
+# Choose PostgreSQL version to install
+PG_VERSION=16
+
+echo "Installing PostgreSQL $PG_VERSION on Ubuntu..."
+
+# Update system
+apt-get update -y
+apt-get upgrade -y
+
+# Install prerequisites
+apt-get install -y wget gnupg2 lsb-release ca-certificates
+
+# Add PostgreSQL APT repository
+sh -c 'echo "deb http://apt.postgresql.org/pub/repos/apt $(lsb_release -cs)-pgdg main" > /etc/apt/sources.list.d/pgdg.list'
+
+# Import the repository signing key
+wget --quiet -O - https://www.postgresql.org/media/keys/ACCC4CF8.asc | apt-key add -
+
+# Update package list
+apt-get update -y
+
+# Install PostgreSQL
+apt-get install -y postgresql-$PG_VERSION postgresql-client-$PG_VERSION
+
+# Enable and start PostgreSQL
+systemctl enable postgresql
+systemctl start postgresql
+
+echo "PostgreSQL $PG_VERSION installed and running."
+
+
+=======================================================
+
+Go to EC2 instance --> connect
+
+Then install the PostgreSQL client:
+--> sudo dnf install -y postgresql16
+--> sudo dnf install -y postgresql15 postgresql16-server
+
+
+Check it's installed:
+--> psql --version
+
+
+==========================
+Syntax:
+psql -h <RDS-endpoint> -p 5432 -U <username> -d <database-name>
+
+Example:
+1) psql -h vertis.c3ooe4ow08on.us-east-1.rds.amazonaws.com -p 5432 -U vertis -d postgres
+2) enter password
+3) CREATE DATABASE guvidb;
+4) type exit;
+5) psql -h guvidb.c3ooe4ow08on.us-east-1.rds.amazonaws.com -p 5432 -U guviuser -d guvidb
+
+6) list databases:
+type --> \l    (That will show all databases currently available)
