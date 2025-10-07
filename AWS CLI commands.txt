@@ -1,0 +1,157 @@
+Install CLI:
+https://k21academy.com/amazon-web-services/aws-solutions-architect/aws-cli/
+
+Steps:
+
+Open cmd: 
+To confirm the installation process, we must write the command:   aws --version
+
+For that, go to My Security Credentials  in AWS Console by clicking on UserName on the To right Corner. Now  Scroll down and you will find Access keys Click on  Create New Access Key, then download the CSV file to the local machine
+
+1) Configure the AWS CLI: aws configure
+AWS Access Key ID [None]: <copy from excel sheet>
+AWS Secret Access Key [None]: <copy from excel sheet>
+Default region name [None]: us-east-1aws 
+Default output format [None]: json
+
+2)Create Key Pair through CLI:
+aws ec2 create-key-pair --key-name mykeypair --query 'KeyMaterial' --output text > mykeypair.pem
+
+3) to get it to verify, you can write:
+aws ec2 describe-key-pairs
+
+4) If you want to delete the key pair at some instance, you can use the command: 
+aws ec2 delete-key-pair --key-name mykeypair
+
+5) List all access keys: aws iam list-access-keys
+
+6) Delete a access key: 
+   aws iam delete-access-key --access-key-id <THINKPORTIDK4EXAMPLE> --user-name <UserName>
+
+================================================================================
+
+1) List S3 buckets: aws s3 ls 
+
+2) Create S3 bucket: aws s3 mb s3://<bucket-name>
+
+3) List bucket content: aws s3 ls s3://<bucket-name>
+
+4) Empty/Remove all objects without specifying a prefix: aws s3 rm s3://bucket-name --recursive
+
+5) Delete an empty bucket: aws s3 rb s3://<bucketName>
+
+6) Copy file to S3 bucket: aws s3 cp C:/Users/Dell/Pictures/cover.png     
+   s3://demoviren123/cover.png   ( do this using windows CLI)
+
+   Copy all the multiple objects to S3 bucket: 
+   aws s3 cp C:\Users\Virendra\Pictures\pics  s3://viren01demo/ --recursive
+
+7) Move S3 bucket to a different location:
+  aws s3 sync s3://oldbucket s3://newbucket --source-region us-west-1 --region us-west-2
+
+===============================================================================
+
+1) Create a group:  aws iam create-group --group-name GroupName
+
+2) List all groups : aws iam list-groups
+
+3) Delete a group : aws iam delete-group --group-name GroupName
+
+4) List all policies : aws iam list-policies
+
+5) Get a specific policy : 
+   aws iam get-policy --policy-arn <arn>  ( go to search--> policies -- click any policy)
+
+6) Add a user to a specific group :
+   aws iam add-user-to-group --group-name <GroupName> --user-name <UserName>
+
+7) Remove a user to a specific group :
+  aws iam remove-user-from-group --group-name <GroupName> --user-name <UserName>
+
+===============================================================================
+
+Don't do below***
+7) Launch EC2 instance using CLI: (After collecting ami-id, you can follow the command): 
+aws ec2 run-instances --image-id ami-08a0d1e16fc3f61ea --instance-type t2.micro --key-name mykeypair
+
+
+--------------- Run below in cloudshell ---------------------------
+1) List EC2 instances: aws ec2 describe-instances
+
+2) start ec2 instances:
+aws ec2 start-instances --instance-ids i-005d98564923ca102
+(here i-005d98564923ca102 is instance id )
+
+3) Stop an EC2 instance: 
+aws ec2 stop-instances --instance-ids i-005d98564923ca102
+
+
+4) List IAM users: aws iam list-users
+
+5) Create an IAM user: aws iam create-user --user-name myuser
+
+6) Attach IAM policy to user: aws iam attach-user-policy --user-name  myuser  --policy-arn arn:aws:iam::aws:policy/AmazonS3FullAccess
+
+7) Detaching user policy : aws  iam  detach-user-policy  --user-name  myuser  --policy-arn arn:aws:iam::aws:policy/AmazonS3FullAccess
+
+8) Delete a user : aws iam delete-user --user-name myuser
+
+9) List Lambda functions: aws lambda list-functions
+
+
+-------------  RDS Creation ----------------------
+Ref: https://linuxhint.com/creating-rds-database-using-aws-cli/
+     https://www.howtoforge.com/how-to-manage-aws-rds-instance-using-aws-cli/
+
+1) proceed by checking existing RDS instances, clusters, snapshots. Run following in cmd
+  (a) aws rds describe-db-instances
+  (b) aws rds describe-db-snapshots
+  (c) aws rds describe-db-clusters
+
+2) In cmd tun the following command - 
+aws rds create-db-instance --db-instance-identifier my-test-rds-mysql-instance --db-instance-class db.t3.micro --engine mysql --master-username viren_sharma --master-user-password Happy2021 --allocated-storage 5
+
+(you will get some kind of json structure)
+
+3) After you create an RDS instance, you can describe it and check its details:
+   aws rds describe-db-instances --db-instance-identifier my-test-rds-mysql-instance
+
+4) Adding a tag to the RDS instance :
+   aws rds add-tags-to-resource --resource-name <rds-instance-arn> --tags "[{\"Key\": \"Env\",\"Value\": \"Test\"}]"
+
+5) Check if the tag has been added or not by listing tags.
+   aws rds list-tags-for-resource  --resource-name <rds-instance-arn>
+
+6) Once the RDS instance is ready and you want to take its snapshot:
+   aws rds create-db-snapshot --db-instance-identifier my-test-rds-mysql-instance --db-snapshot-identifier my-test-snapshot
+   (You can also check the Snapshot you created in the AWS RDS console)
+
+7) deleting the snapshot first:
+   aws rds delete-db-snapshot --db-snapshot-identifier my-test-snapshot
+aws
+8) To delete the instance, specify --skip-final-snapshot option to the command else the instance will not be terminated.This option skips the final snapshot which can be taken before deleting the RDS instance:-
+
+   aws rds delete-db-instance --db-instance-identifier my-test-rds-mysql-instance --skip-final-snapshot
+
+9) Verify if the snapshot and RDS instance are really deleted.
+   (a) aws rds describe-db-snapshots
+   (b) aws rds describe-db-instances
+
+
+------------------------  EBS volume ----------------------------------
+1) To create an EBS volume:
+   aws ec2 create-volume --size 1 --availability-zone us-east-1a --region us-east-1
+
+2) To attach the created EBS volume to the instance :
+   aws ec2 attach-volume --volume-id <vol-id> --instance-id <i-09bc055cbcbdfba9b> --device /dev/xvdf --region us-east-1
+
+3) detach the volume from the instance :  aws  ec2  detach-volume  --volume-id  <vol-id>
+
+4) delete a volume id :
+   aws ec2 delete-volume --volume-id <vol-id>  --region us-east-1
+
+5) To create a security group:
+   aws ec2 create-security-group --group-name my-aws-test-sg --description "My AWS Test Security Group" --region us-east-1
+
+6) To delete a security group:
+   aws ec2 delete-security-group --group-name my-aws-test-sg  --region us-east-1
