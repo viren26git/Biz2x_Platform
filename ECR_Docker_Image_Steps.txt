@@ -1,0 +1,120 @@
+Reference Links:
+https://docs.aws.amazon.com/AmazonECS/latest/developerguide/create-container-image.html#create-container-image-install-docker
+
+--------  Install Docker on the EC2 terminal ----------
+
+To install Docker on an Amazon EC2 instance using an Amazon Linux 2023 AMI
+
+Step 1: Launch an instance with the latest Amazon Linux 2023 AMI. 
+
+Step 2: Connect to your instance. 
+
+Step 3: On EC2 terminal (black window) --> Update the installed packages and package cache on your instance.
+Run ---->   sudo yum update -y
+
+Step 4: Install the most recent Docker Community Edition package.
+Run     --->    sudo yum install docker
+
+Step 5:   Start the Docker service.
+Run --->    sudo service docker start
+
+Step 6:  Add the ec2-user to the docker group so you can execute Docker commands without using sudo.
+Run  --->   sudo usermod -a -G docker ec2-user
+
+Step 7: Open EC2 terminal again  --> EC2 connect
+Log out and log back in again to pick up the new docker group permissions. You can accomplish this by closing your current SSH terminal window and reconnecting to your instance in a new one. Your new SSH session will have the appropriate docker group permissions.
+
+
+Step 8: Verify that the ec2-user can run Docker commands without sudo.
+Run -->   docker info
+
+
+--------    Create a Docker image    --------
+
+Step 1: To create a Docker image of a simple web application
+Create a file called Dockerfile. A Dockerfile is a manifest that describes the base image to use for your Docker image and what you want installed and running on it. 
+
+Run  ---->   touch Dockerfile
+
+
+Step 2:  Edit the Dockerfile you just created and add the following content --> using -->  vi DockerFile
+Add following content:
+
+FROM public.ecr.aws/amazonlinux/amazonlinux:latest
+
+# Update installed packages and install Apache
+RUN yum update -y && \
+ yum install -y httpd
+
+# Write hello world message
+RUN echo 'Hello World!' > /var/www/html/index.html
+
+# Configure Apache
+RUN echo 'mkdir -p /var/run/httpd' >> /root/run_apache.sh && \
+ echo 'mkdir -p /var/lock/httpd' >> /root/run_apache.sh && \
+ echo '/usr/sbin/httpd -D FOREGROUND' >> /root/run_apache.sh && \
+ chmod 755 /root/run_apache.sh
+
+EXPOSE 80
+
+CMD /root/run_apache.sh
+
+save and exit  -->   Esc + :wq!
+
+This Dockerfile uses the public Amazon Linux 2 image hosted on Amazon ECR Public. The RUN instructions update the package caches, installs some software packages for the web server, and then write the "Hello World!" content to the web servers document root. The EXPOSE instruction means that port 80 on the container is the one that is listening, and the CMD instruction starts the web server.
+
+
+Step 3) Build the Docker image from your Dockerfile.  
+Run --->     docker build -t hello-repository  --file ./Dockerfile .
+
+Step 4: List your container image.
+docker images --filter reference=hello-repository
+
+Step 5: Run the newly built image. The -p 80:80 option maps the exposed port 80 on the container to port 80 on the host system.
+Run --->     docker run -t -i -p 80:80 hello-repository
+
+(note** -Output from the Apache web server is displayed in the terminal window. You can ignore the "Could not reliably determine the fully qualified domain name" message.)
+
+Step 6)  open browser ---> http://35.153.136.27/ (this the public ip address of my EC2 machine)
+(You will see : Hello World !! )
+
+
+---------- Push your image to Amazon Elastic Container Registry----------
+Amazon ECR is a managed AWS Docker registry service. You can use the Docker CLI to push, pull, and manage images in your Amazon ECR repositories
+
+Step 1: To tag your image and push it to Amazon ECR
+Create an Amazon ECR repository to store your hello-world image. Note the repositoryUri in the output.
+Substitute region, with your AWS Region, for example, us-east-1.
+
+get the access key and secret key:
+(a) go to your upper right corner of the username  drop down --> click on security credentials
+(b) clic on button "create access key"
+(c) choose the option as "command line" --> click next  --> click next ---> key will get generate
+
+go to teminal : -->  aws configure
+
+Run ---> aws ecr create-repository --repository-name hello-repository --region us-east-1
+
+Output:
+
+{
+    "repository": {
+        "registryId": "aws_account_id",
+        "repositoryName": "hello-repository",
+        "repositoryArn": "arn:aws:ecr:region:aws_account_id:repository/hello-repository",
+        "createdAt": 1505337806.0,
+        "repositoryUri": "aws_account_id.dkr.ecr.region.amazonaws.com/hello-repository"
+    }
+}
+
+
+Step 2: Login to IAM account ---> search ECS ---> 
+(a) Click on "repositories" on left side --> new page will open ---> select the "private repositories"
+(b) Your repository will come with name of "hello-repository" --> Click on that --> "Images" page will come
+(c) Click on "View push commands" button on top right
+(d) there 4 steps will given in pop-up follow that in EC2 terminal
+   (your Docker image will be pushed)
+(e) Refresh this "Images" page again --> you will see docker image will coming there added.
+
+------------
+
